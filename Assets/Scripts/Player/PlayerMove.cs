@@ -117,7 +117,7 @@ public class PlayerController : MonoBehaviour
 
         Vector3 direction = forward * (input.y * speed) + right * (input.x * strafeSpeed);
 
-        float sprintMult = onFoot.Sprint.IsPressed() ? sprintMultiplier : 1f;
+        float sprintMult = (onFoot.Sprint.IsPressed() && isGrounded) ? sprintMultiplier : 1f;
         hips.AddForce(sprintMult * direction);
     }
 

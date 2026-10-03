@@ -1674,7 +1674,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalRotation: {x: 0, y: 0.9991361, z: -0.041558642, w: 0}
   m_LocalPosition: {x: 0, y: 3.69, z: 13.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2073,6 +2073,7 @@ GameObject:
   - component: {fileID: 505776853}
   - component: {fileID: 505776854}
   - component: {fileID: 505776855}
+  - component: {fileID: 505776856}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: MainCamera
@@ -2088,7 +2089,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 505776852}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalRotation: {x: 0, y: 0.9991361, z: -0.041558642, w: 0}
   m_LocalPosition: {x: 0, y: 3.69, z: 13.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2151,12 +2152,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
-    BindingMode: 4
+    BindingMode: 1
     PositionDamping: {x: 0, y: 1, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0.5, z: 6}
+  FollowOffset: {x: 0, y: 0.5, z: -6}
+--- !u!114 &505776856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 505776852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
+  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &530249990
 GameObject:
   m_ObjectHideFlags: 0
@@ -4478,6 +4492,7 @@ MonoBehaviour:
   strafeSpeed: 100
   sprintMultiplier: 1.5
   jumpForce: 75
+  mouseSensitivity: 0.1
   leftFoot: {fileID: 530249994}
   rightFoot: {fileID: 1761120762}
   groundMask:
@@ -5285,19 +5300,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6fa9b8c007aebf748b74568ad571f868, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.5261472
+      value: 0.526147
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6fa9b8c007aebf748b74568ad571f868, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.5261473
+      value: -0.526147
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6fa9b8c007aebf748b74568ad571f868, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.47240785
+      value: 0.47240803
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6fa9b8c007aebf748b74568ad571f868, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.4724078
+      value: 0.47240803
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6fa9b8c007aebf748b74568ad571f868, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
