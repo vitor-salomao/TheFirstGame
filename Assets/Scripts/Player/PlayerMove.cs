@@ -1,7 +1,6 @@
-using System;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
     [Header("Physics")]
     [SerializeField] private Rigidbody hips;
@@ -10,8 +9,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float sprintMultiplier = 1.5f;
     [SerializeField] private float jumpForce = 75f;
     [SerializeField] private Animator animator;
+    private static readonly int WalkSpeedHash = Animator.StringToHash("WalkSpeed");
 
     private float maxSpeed;
+
+    [Header("Turning")]
+    private PlayerLook look;
+    private ConfigurableJoint hipsJoint;
+    private Quaternion startRotation;
+    private float startYaw;
+    private bool turnInitialized;
 
     [Header("GroundCheck")]
     [SerializeField] private Transform leftFoot;
@@ -27,18 +34,14 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         onFoot = new PlayerActions().OnFoot;
+        look = GetComponent<PlayerLook>();
+        hipsJoint = hips.GetComponent<ConfigurableJoint>();
+        startRotation = hips.transform.rotation;
         maxSpeed = speed * sprintMultiplier;
     }
 
-    private void OnEnable()
-    {
-        onFoot.Enable();
-    }
-
-    private void OnDisable()
-    {
-        onFoot.Disable();
-    }
+    private void OnEnable() => onFoot.Enable();
+    private void OnDisable() => onFoot.Disable();
 
     private void Update()
     {
@@ -48,6 +51,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         CheckGround();
+        Turn();
         Move();
     }
 
@@ -59,6 +63,18 @@ public class PlayerController : MonoBehaviour
     private bool FootOnGround(Transform foot)
     {
         return Physics.Raycast(foot.position, Vector3.down, groundCheckDistance, groundMask, QueryTriggerInteraction.Ignore);
+    }
+
+    private void Turn()
+    {
+        if (!turnInitialized)
+        {
+            startYaw = look.yaw;
+            turnInitialized = true;
+        }
+
+        Quaternion yawDelta = Quaternion.Euler(0f, look.yaw - startYaw, 0f);
+        hipsJoint.targetRotation = Quaternion.Inverse(startRotation) * Quaternion.Inverse(yawDelta) * startRotation;
     }
 
     private void Move()
@@ -79,12 +95,12 @@ public class PlayerController : MonoBehaviour
         Vector3 force = sprintMult * direction;
         hips.AddForce(force);
 
-        animator.SetFloat("WalkSpeed", (force.magnitude * 1.5f) / maxSpeed);
+        animator.SetFloat(WalkSpeedHash, (force.magnitude * 1.5f) / maxSpeed);
     }
 
     private void Jump()
     {
-        if (jumpQueued && isGrounded) hips.AddForce(jumpForce * hips.transform.up, ForceMode.Impulse);
+        if (jumpQueued && isGrounded) hips.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);
 
         jumpQueued = false;
     }
