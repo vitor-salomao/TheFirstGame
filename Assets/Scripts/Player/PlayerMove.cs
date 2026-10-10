@@ -1,43 +1,37 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMove : MonoBehaviour
 {
-    [Header("Physics")]
-    [SerializeField] private Rigidbody hips;
-    [SerializeField] private float speed = 100f;
-    [SerializeField] private float strafeSpeed = 100f;
+    [Header("Movement")]
+    [SerializeField] private float walkSpeed = 4f;
     [SerializeField] private float sprintMultiplier = 1.5f;
-    [SerializeField] private float jumpForce = 75f;
-    [SerializeField] private Animator animator;
-    private static readonly int WalkSpeedHash = Animator.StringToHash("WalkSpeed");
+    [SerializeField] private float acceleration = 40f;
+    [SerializeField] private float airControl = 0.3f;
+    [SerializeField] private float jumpHeight = 1.2f;
 
-    private float maxSpeed;
-
-    [Header("Turning")]
-    private PlayerLook look;
-    private ConfigurableJoint hipsJoint;
-    private Quaternion startRotation;
-    private float startYaw;
-    private bool turnInitialized;
-
-    [Header("GroundCheck")]
-    [SerializeField] private Transform leftFoot;
-    [SerializeField] private Transform rightFoot;
+    [Header("Ground Check")]
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundRadius = 0.25f;
     [SerializeField] private LayerMask groundMask;
-    [SerializeField] private float groundCheckDistance = 0.3f;
 
+    private Rigidbody rb;
+    private PlayerLook look;
+    private PlayerActions.OnFootActions onFoot;
     private bool isGrounded;
     private bool jumpQueued;
 
-    private PlayerActions.OnFootActions onFoot;
+    public bool IsGrounded => isGrounded;
+    public float MaxSpeed => walkSpeed * sprintMultiplier;
+    public float JumpHeight => jumpHeight;
+
+    public event System.Action Jumped;
 
     private void Awake()
     {
-        onFoot = new PlayerActions().OnFoot;
+        rb = GetComponent<Rigidbody>();
         look = GetComponent<PlayerLook>();
-        hipsJoint = hips.GetComponent<ConfigurableJoint>();
-        startRotation = hips.transform.rotation;
-        maxSpeed = speed * sprintMultiplier;
+        onFoot = new PlayerActions().OnFoot;
     }
 
     private void OnEnable() => onFoot.Enable();
@@ -51,57 +45,44 @@ public class PlayerMove : MonoBehaviour
     private void FixedUpdate()
     {
         CheckGround();
-        Turn();
-        Move();
+
+        Vector3 velocity = rb.linearVelocity;
+        velocity = Move(velocity);
+        velocity = Jump(velocity);
+        rb.linearVelocity = velocity;
     }
 
     private void CheckGround()
     {
-        isGrounded = FootOnGround(leftFoot) || FootOnGround(rightFoot);
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, groundMask, QueryTriggerInteraction.Ignore);
     }
 
-    private bool FootOnGround(Transform foot)
-    {
-        return Physics.Raycast(foot.position, Vector3.down, groundCheckDistance, groundMask, QueryTriggerInteraction.Ignore);
-    }
-
-    private void Turn()
-    {
-        if (!turnInitialized)
-        {
-            startYaw = look.yaw;
-            turnInitialized = true;
-        }
-
-        Quaternion yawDelta = Quaternion.Euler(0f, look.yaw - startYaw, 0f);
-        hipsJoint.targetRotation = Quaternion.Inverse(startRotation) * Quaternion.Inverse(yawDelta) * startRotation;
-    }
-
-    private void Move()
-    {
-        Walk();
-        Jump();
-    }
-
-    private void Walk()
+    private Vector3 Move(Vector3 velocity)
     {
         Vector2 input = onFoot.Move.ReadValue<Vector2>();
-        Vector3 forward = Vector3.ProjectOnPlane(hips.transform.forward, Vector3.up).normalized;
-        Vector3 right = Vector3.ProjectOnPlane(hips.transform.right, Vector3.up).normalized;
+        Vector3 wishDir = Quaternion.Euler(0f, look.Yaw, 0f) * new Vector3(input.x, 0f, input.y);
+        wishDir = Vector3.ClampMagnitude(wishDir, 1f);
 
-        Vector3 direction = forward * (input.y * speed) + right * (input.x * strafeSpeed);
-        float sprintMult = (onFoot.Sprint.IsPressed() && isGrounded) ? sprintMultiplier : 1f;
+        float speed = walkSpeed * (onFoot.Sprint.IsPressed() && isGrounded ? sprintMultiplier : 1f);
 
-        Vector3 force = sprintMult * direction;
-        hips.AddForce(force);
+        Vector3 planar = new(velocity.x, 0f, velocity.z);
+        float accel = acceleration * (isGrounded ? 1f : airControl);
+        planar = Vector3.MoveTowards(planar, wishDir * speed, accel * Time.fixedDeltaTime);
 
-        animator.SetFloat(WalkSpeedHash, (force.magnitude * 1.5f) / maxSpeed);
+        velocity.x = planar.x;
+        velocity.z = planar.z;
+        return velocity;
     }
 
-    private void Jump()
+    private Vector3 Jump(Vector3 velocity)
     {
-        if (jumpQueued && isGrounded) hips.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);
+        if (jumpQueued && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(2f * -Physics.gravity.y * jumpHeight);
+            Jumped?.Invoke();
+        }
 
         jumpQueued = false;
+        return velocity;
     }
 }
