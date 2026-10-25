@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Packers/Item")]
-public class Item : ScriptableObject
+public class ItemData : ScriptableObject
 {
     public string Name;
     public GameObject Prefab;
