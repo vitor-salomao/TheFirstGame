@@ -7,16 +7,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class WorldItem : MonoBehaviour
 {
-    [Header("Identity")]
-    [SerializeField] private string displayName = "Item";
 
-    [Header("Physical")]
-    [Tooltip("Mass in kg. This is written to the Rigidbody, so set weight HERE, not on the Rigidbody.")]
-    [SerializeField, Min(0.01f)] private float weight = 1f;
-
-    [Header("Durability")]
-    [SerializeField, Min(1f)] private float maxDurability = 100f;
-    [SerializeField] private bool indestructible = false;
+    [Header("Blueprint")]
+    [Tooltip("Assign on the prefab. Weight and durability come from here.")]
+    [SerializeField] private ItemData data;
 
     [Header("Grabbing")]
     [SerializeField] private bool grabbable = true;
@@ -25,32 +19,49 @@ public class WorldItem : MonoBehaviour
     [Tooltip("Hold by the center of mass instead of where you grabbed it (small items).")]
     [SerializeField] private bool holdByCenter = false;
 
-    
-    public string DisplayName => displayName;
-    public float Weight => weight;
+
+    public ItemData Data => data;
+    public string DisplayName => data != null ? data.Name : name;
+    public float Weight => data != null ? data.Weight : 1f;
     public Rigidbody Body { get; private set; }
 
     public float Durability { get; private set; }
-    public float MaxDurability => maxDurability;
-    public bool IsBroken => !indestructible && Durability <= 0f;
+    public float MaxDurability => data != null ? data.MaxDurability : 100f;
+    public bool Indestructible => data != null && data.Indestructible;
+    public bool IsBroken => !Indestructible && Durability <= 0f;
 
     public bool IsGrabbable => grabbable && !IsBroken;
     public float GripMultiplier => gripMultiplier;
     public bool HoldByCenter => holdByCenter;
 
-    /// How many players are holding this right now (group carrying). Not shown in the inspector.
-    /// Recommended by Claude. 
-    public int HolderCount { get; private set; }
+    /// Rolled by the spawner. 0 for items placed by hand in the scene.
+    public int Value { get; private set; }
 
-    // Grabbing (called by PlayerGrab in player scripts) 
+    /// How many players are holding this right now (group carrying).
+    public int HolderCount { get; private set; }
     public void AddHolder() => HolderCount++;
     public void RemoveHolder() => HolderCount = Mathf.Max(0, HolderCount - 1);
 
     protected virtual void Awake()
     {
         Body = GetComponent<Rigidbody>();
-        Body.mass = weight;
-        Durability = maxDurability;
+        if (data == null)
+            Debug.LogWarning($"{name} has no ItemData assigned.", this);
+        ApplyBlueprint();
+    }
+
+    // Called by the spawner right after Instantiate. Pass a different ItemData for variants.
+    public void Init(ItemData itemData, int value)
+    {
+        data = itemData;
+        Value = value;
+        ApplyBlueprint();
+    }
+
+    private void ApplyBlueprint()
+    {
+        Body.mass = Weight;
+        Durability = MaxDurability;
     }
 
     // Runs in the editor whenever you change a value in the inspector:
@@ -58,7 +69,7 @@ public class WorldItem : MonoBehaviour
     protected virtual void OnValidate()
     {
         var rb = GetComponent<Rigidbody>();
-        if (rb != null) rb.mass = weight;
+        if (rb != null) rb.mass = data.Weight;
     }
 
 
@@ -73,16 +84,9 @@ public class WorldItem : MonoBehaviour
     ///Durability
     public void Damage(float amount)
     {
-        if (indestructible || IsBroken || amount <= 0f) return;
+        if (Indestructible || IsBroken || amount <= 0f) return;
         Durability = Mathf.Max(0f, Durability - amount);
         if (IsBroken) OnBroken();
     }
 
-    /* 
-     * Claude recommended a repair function, but I don't think we need it. If we do, uncomment this code:
-    public void Repair(float amount)
-    {
-        Durability = Mathf.Min(maxDurability, Durability + Mathf.Max(0f, amount));
-    }
-    */
 }
