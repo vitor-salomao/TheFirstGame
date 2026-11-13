@@ -3241,11 +3241,11 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 37f24f971e88f844cbc25fd1669e147c, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 0d79d5c9663136940a6c19dc2cfd7b39, type: 2}
+      objectReference: {fileID: 2100000, guid: 847d9d2d6e3f82c44bf05cd7adea1d84, type: 2}
     - target: {fileID: -7511558181221131132, guid: 37f24f971e88f844cbc25fd1669e147c, type: 3}
       propertyPath: 'm_Materials.Array.data[2]'
       value: 
-      objectReference: {fileID: 2100000, guid: 0d79d5c9663136940a6c19dc2cfd7b39, type: 2}
+      objectReference: {fileID: 2100000, guid: 1e9a0b55db9cb8443aad1fc70bc092cf, type: 2}
     - target: {fileID: 919132149155446097, guid: 37f24f971e88f844cbc25fd1669e147c, type: 3}
       propertyPath: m_Name
       value: item_Painting
@@ -13050,10 +13050,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a68a107e495521429255ab2135403e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItem
-  displayName: Item
-  weight: 1
-  maxDurability: 100
-  indestructible: 0
+  data: {fileID: 0}
   grabbable: 1
   gripMultiplier: 1
   holdByCenter: 0

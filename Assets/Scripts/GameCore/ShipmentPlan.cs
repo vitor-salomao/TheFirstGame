@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 
-/// What spawns today and what it's worth. Pure data, produced by ShipmentGenerator.
+// What spawns today and what it's worth. Pure data, produced by ShipmentGenerator.
 public class ShipmentPlan
 {
+    //Each entry is one item.
     public readonly struct Entry
     {
         public readonly ItemData Item;
@@ -26,6 +27,7 @@ public class ShipmentPlan
 
     public bool IsWinnable => TotalValue >= Quota;
     public float Surplus => Quota > 0 ? (float)TotalValue / Quota : 0f;
+
 
     public ShipmentPlan(int day, int quota, float difficulty, List<Entry> entries)
     {
