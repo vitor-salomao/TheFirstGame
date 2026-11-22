@@ -20,7 +20,7 @@ public class DifficultyCurve : ScriptableObject
     [Tooltip("No single item can be worth more than this share of the quota.")]
     [Range(0.1f, 1f)] public float MaxItemShareOfQuota = 0.5f;
 
-    /// difficulty: 0 = easiest possible day, 1 = hardest.
+    // Difficulty goes from 0 (easiest day) to 1 (hardest day)
     public int QuotaFor(int day, float difficulty)
     {
         float average = BaseQuota * Mathf.Pow(GrowthPerDay, day - 1);
@@ -28,5 +28,14 @@ public class DifficultyCurve : ScriptableObject
         return Mathf.Max(1, Mathf.RoundToInt(average * swing));
     }
 
-    public float SurplusFor(float difficulty) => Mathf.Lerp(EasySurplus, HardSurplus, difficulty);
+    public int TargetValueFor(int quota, float difficulty)
+    {
+        float surplus = Mathf.Lerp(EasySurplus, HardSurplus, difficulty);
+        return Mathf.CeilToInt(quota * surplus);
+    }
+
+    public int MaxItemValueFor(int quota)
+    {
+        return Mathf.Max(1, Mathf.FloorToInt(quota * MaxItemShareOfQuota));
+    }
 }

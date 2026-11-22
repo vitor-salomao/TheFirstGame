@@ -5,13 +5,12 @@ public class ItemData : ScriptableObject
 {
     [Header("Identity")]
     public string Name = "Item";
-    [Tooltip("Must have a WorldItem component, with this asset assigned to it.")]
     public WorldItem Prefab;
     public ItemType Type;
     public ItemSize Size;
 
     [Header("Physical")]
-    [Tooltip("Mass in kg. Written to the Rigidbody on spawn.")]
+    [Tooltip("Mass in kg.")]
     [Min(0.01f)] public float Weight = 1f;
 
     [Header("Durability")]
@@ -28,24 +27,23 @@ public class ItemData : ScriptableObject
     [Tooltip("First day this item can appear.")]
     [Min(1)] public int MinDay = 1;
 
-   // Generator calls this once per spawned item to get that item's value.
-    public int RollValue(System.Random rng) => rng.Next(MinValue, MaxValue + 1);
+    public int RollValue(System.Random random)
+    {
+        return random.Next(MinValue, MaxValue + 1);
+    }
 
-    // Changing item in inspector should not allow MinValue to be greater than MaxValue. This is enforced in OnValidate.
+    public bool CanSpawn(int day, int maxValue)
+    {
+        if (Prefab == null) return false;
+        if (Type != ItemType.Ready) return false;
+        if (SpawnWeight <= 0f) return false;
+        if (day < MinDay) return false;
+
+        return MinValue <= maxValue;
+    }
+
     private void OnValidate()
     {
         if (MaxValue < MinValue) MaxValue = MinValue;
-    }
-
-    public enum ItemType { 
-        Ready, 
-        Component, 
-        Trinket 
-    }
-    
-    public enum ItemSize { 
-        Small, 
-        Medium, 
-        Large 
     }
 }
