@@ -11,7 +11,8 @@ public class PlayerLook : MonoBehaviour
     private float pitch;
     private PlayerActions.OnFootActions onFoot;
 
-    public float Yaw => yaw;
+    // Read from the camera itself, so it's also right on other players' copies, where this script is off
+    public float Yaw => cameraPivot.eulerAngles.y;
 
     private void Awake()
     {

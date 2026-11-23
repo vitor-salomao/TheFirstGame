@@ -17,6 +17,8 @@ public class RagdollFollow : MonoBehaviour
     private Vector3 positionOffset;
     private float startYaw;
     private float totalMass;
+    private Vector3 lastRootPosition;
+    private Vector3 measuredVelocity;
 
     private void Awake()
     {
@@ -32,10 +34,11 @@ public class RagdollFollow : MonoBehaviour
         positionOffset.y = 0f;
 
         foreach (Rigidbody body in GetComponentsInChildren<Rigidbody>()) totalMass += body.mass;
+        lastRootPosition = root.transform.position;
     }
 
-    private void OnEnable() => move.Jumped += OnJumped;
-    private void OnDisable() => move.Jumped -= OnJumped;
+    private void OnEnable() => move.Jumped += Jump;
+    private void OnDisable() => move.Jumped -= Jump;
 
     private void FixedUpdate()
     {
@@ -43,7 +46,8 @@ public class RagdollFollow : MonoBehaviour
         Follow();
     }
 
-    private void OnJumped()
+    // Public so a jump from another player (sent over the network) can play on this body too
+    public void Jump()
     {
         float rootJumpVelocity = Mathf.Sqrt(2f * -Physics.gravity.y * move.JumpHeight);
         hips.AddForce(rootJumpVelocity * totalMass * Vector3.up, ForceMode.Impulse);
@@ -61,7 +65,7 @@ public class RagdollFollow : MonoBehaviour
         Vector3 distanceToTarget = target - hips.position;
         distanceToTarget.y = 0f;
 
-        Vector3 rootVelocity = root.linearVelocity;
+        Vector3 rootVelocity = GetRootVelocity();
         Vector3 hipsVelocity = hips.linearVelocity;
         Vector3 velocityDiff = new(rootVelocity.x - hipsVelocity.x, 0f, rootVelocity.z - hipsVelocity.z);
 
@@ -69,5 +73,20 @@ public class RagdollFollow : MonoBehaviour
 
         float planarSpeed = new Vector3(rootVelocity.x, 0f, rootVelocity.z).magnitude;
         animator.SetFloat(WalkSpeedHash, planarSpeed / move.MaxSpeed);
+    }
+
+    // Your own body moves with physics, so its velocity is real. Other players' bodies are moved by the network,
+    // so their physics velocity is always 0 and we measure how far they moved instead.
+    private Vector3 GetRootVelocity()
+    {
+        Vector3 position = root.transform.position;
+        Vector3 moved = (position - lastRootPosition) / Time.fixedDeltaTime;
+        lastRootPosition = position;
+
+        if (!root.isKinematic) return root.linearVelocity;
+
+        // Network updates don't line up with physics steps, so smooth out the jumps between them
+        measuredVelocity = Vector3.Lerp(measuredVelocity, moved, 0.25f);
+        return measuredVelocity;
     }
 }
