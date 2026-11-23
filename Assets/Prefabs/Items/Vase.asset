@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Item
   Name: Purple Vase
   Prefab: {fileID: 0}
-  Weight: 150
-  Durability: 10
   Type: 0
+  Size: 0
+  Weight: 10
+  MaxDurability: 100
+  Indestructible: 0
+  MinValue: 5
+  MaxValue: 10
+  SpawnWeight: 1
+  MinDay: 1
